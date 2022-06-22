@@ -59,6 +59,9 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
   } catch (e) {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
     console.log('[cloneLinodeHandler] Retrying...');
+    await new Promise((resolve) => {
+      setTimeout(resolve, wait + _.random(3000, 5000));
+    });
     await cloneLinodeHandler(linode, wait);
   }
 };
@@ -145,6 +148,9 @@ const createLinodeHandler = async (ignoreRegion) => {
   } catch (e) {
     console.log('ignore error: ', e.message);
     console.log('[createLinodeHandler] Retrying... ');
+    await new Promise((resolve) => {
+      setTimeout(resolve, wait + _.random(3000, 5000));
+    });
     await createLinodeHandler(ignoreRegion);
   }
 };
@@ -241,6 +247,9 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
 const allInOne = async (max, numberRegions) => {
   let ignoreRegion = [];
   const promises = _.times(numberRegions, async () => {
+    await new Promise((resolve) => {
+      setTimeout(resolve, _.random(1000, 3000));
+    });
     const linode = await createLinodeHandler(ignoreRegion);
     console.log(`Wait 60s for [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}] ssh ready`);
     await new Promise((resolve) => {
