@@ -33,7 +33,7 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
     const newLinode = await cloneLinode(linode.id, {
       type: linode.type,
       region: linode.region,
-      label: 'c_' + faker.random.word() + '_' + new Date().getTime(),
+      label: 'c_' + _.toLower(faker.random.word()) + '_' + new Date().getTime(),
     });
     console.log(`Clone Linode [${newLinode.id} - ${linode.label}] created`);
     return await new Promise(async (resolve) => {
@@ -127,7 +127,7 @@ const createLinodeHandler = async (ignoreRegion) => {
       image: 'linode/ubuntu22.04',
       region: region,
       root_pass: process.env.SSH_PASSWORD,
-      label: faker.random.word() + '_' + new Date().getTime(),
+      label: _.toLower(faker.random.word()) + '_' + new Date().getTime(),
     });
     console.log(`Linode [${linode.id} - ${linode.label} - ${region} - ${linode.ipv4[0]}] created`);
     return await new Promise(async (resolve) => {
