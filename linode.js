@@ -194,24 +194,26 @@ const actionRunScripts = async (region) => {
           },
         });
       });
-      // await new Promise((resolve, reject) => {
-      //   console.log(`Start run scripts peer2profit linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
-      //   ssh.exec(`IP=$(hostname -I | awk '{print $1}') && sudo pkill p2pclient && nohup p2pclient --login ${process.env.PEER2PROFIT_EMAIL} -n "$IP;8.8.8.8,4.4.4.4" 2>1 &`, {
-      //     out: function (stdout) {
-      //       console.log(stdout);
-      //     },
-      //     exit: resolve,
-      //   }).start({
-      //     fail: (e) => {
-      //       console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
-      //       reject(e);
-      //     },
-      //   });
-      // });
+      await new Promise((resolve, reject) => {
+        console.log(`Start run scripts peer2profit linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
+        ssh.exec(`sudo pkill p2pclient
+            export IP=$(hostname -I | awk '{print $1}')
+            tmux new -d 'p2pclient --login ${process.env.PEER2PROFIT_EMAIL} -n "$IP;8.8.8.8,4.4.4.4"'`, {
+          out: function (stdout) {
+            console.log(stdout);
+          },
+          exit: resolve,
+        }).start({
+          fail: (e) => {
+            console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
+            reject(e);
+          },
+        });
+      });
     } catch (e) {
       ipErrors.push({
         ip: linode.ipv4[0],
-        message: e.message
+        message: e.message,
       });
       console.error(`Retry error ip: $[${linode.ipv4[0]}]: `, e.message);
     }
@@ -222,7 +224,7 @@ const actionRunScripts = async (region) => {
   }
 
   if (ipErrors.length > 0) {
-    console.log('IP Error: ', ipErrors)
+    console.log('IP Error: ', ipErrors);
   }
 };
 
