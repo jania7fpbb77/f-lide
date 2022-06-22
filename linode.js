@@ -58,7 +58,7 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
     console.log('[cloneLinodeHandler] Retrying...');
     await new Promise((resolve) => {
-      setTimeout(resolve, wait + _.random(3000, 5000));
+      setTimeout(resolve, _.random(3000, 5000));
     });
     await cloneLinodeHandler(linode, wait);
   }
@@ -147,7 +147,7 @@ const createLinodeHandler = async (ignoreRegion) => {
     console.log('ignore error: ', e.message);
     console.log('[createLinodeHandler] Retrying... ');
     await new Promise((resolve) => {
-      setTimeout(resolve, wait + _.random(3000, 5000));
+      setTimeout(resolve, _.random(3000, 5000));
     });
     return await createLinodeHandler(ignoreRegion);
   }
@@ -168,8 +168,8 @@ const deleteAllLinodes = async () => {
 };
 
 const actionRunScripts = async (region) => {
-  console.log(`actionRunScripts for ${region}`);
   let dataLinodes = (await getLinodes({}, region ? { region: region } : {})).data;
+  console.log(`actionRunScripts for ${region} - linodes: ${dataLinodes.length}`);
   const ipErrors = [];
   const runHandler = async (linode) => {
     try {
@@ -227,23 +227,36 @@ const actionRunScripts = async (region) => {
 };
 
 const cloneAndExecScripts = async (linode, max, numberRegions) => {
-  const ssh = new SSH({
-    host: linode.ipv4[0],
-    user: 'root',
-    pass: process.env.SSH_PASSWORD,
-  });
-
-  await new Promise((resolve, reject) => {
-    console.log('Install base scripts');
-    ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
-      out: function (stdout) {
-        console.log(stdout);
-      },
-      exit: resolve,
-    }).start({
-      fail: reject,
+  const installBaseScripts = async () => {
+    const ssh = new SSH({
+      host: linode.ipv4[0],
+      user: 'root',
+      pass: process.env.SSH_PASSWORD,
     });
-  });
+
+    await new Promise((resolve, reject) => {
+      console.log('Install base scripts');
+      ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
+        out: function (stdout) {
+          console.log(stdout);
+        },
+        exit: resolve,
+      }).start({
+        fail: reject,
+      });
+    });
+  }
+
+  try {
+    await installBaseScripts();
+  } catch (e) {
+    console.log('[installBaseScripts] ignore error: ', e.message);
+    console.log('[installBaseScripts] Retrying...');
+    await new Promise((resolve) => {
+      setTimeout(resolve, _.random(3000, 5000));
+    });
+    await installBaseScripts();
+  }
 
   await actionCloneLinode(linode, _.ceil(max / numberRegions));
   console.log(`Wait 30s for ssh ready`);
