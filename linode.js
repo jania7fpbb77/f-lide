@@ -4,6 +4,7 @@ const {
 const _ = require('lodash');
 const interval = require('interval-promise');
 const SSH = require('simple-ssh');
+const { faker } = require('@faker-js/faker');
 const fs = require('fs');
 require('dotenv').config();
 
@@ -32,7 +33,7 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
     const newLinode = await cloneLinode(linode.id, {
       type: linode.type,
       region: linode.region,
-      label: 'clone_fuck_' + new Date().getTime(),
+      label: 'c_' + faker.random.words(10) + '_' + new Date().getTime(),
     });
     console.log(`Clone Linode [${newLinode.id} - ${linode.label}] created`);
     return await new Promise(async (resolve) => {
@@ -126,7 +127,7 @@ const createLinodeHandler = async (ignoreRegion) => {
       image: 'linode/ubuntu22.04',
       region: region,
       root_pass: process.env.SSH_PASSWORD,
-      label: 'fuck_' + new Date().getTime(),
+      label: faker.random.words(10) + '_' + new Date().getTime(),
     });
     console.log(`Linode [${linode.id} - ${linode.label} - ${region} - ${linode.ipv4[0]}] created`);
     return await new Promise(async (resolve) => {

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/dump464646/auto-linode#readme",
   "dependencies": {
+    "@faker-js/faker": "^7.3.0",
     "@linode/api-v4": "^0.73.0",
     "dotenv": "^16.0.1",
     "interval-promise": "^1.4.0",
