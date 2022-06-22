@@ -172,6 +172,7 @@ const deleteAllLinodes = async () => {
 const actionRunScripts = async (region) => {
   console.log(`actionRunScripts for ${region}`);
   let dataLinodes = (await getLinodes({}, region ? { region: region } : {})).data;
+  const ipErrors = [];
   const runHandler = async (linode) => {
     try {
       const ssh = new SSH({
@@ -208,12 +209,20 @@ const actionRunScripts = async (region) => {
       //   });
       // });
     } catch (e) {
-      console.error(`Retry error ip: $[${linode.ipv4[0]}]: `, e);
+      ipErrors.push({
+        ip: linode.ipv4[0],
+        message: e.message
+      });
+      console.error(`Retry error ip: $[${linode.ipv4[0]}]: `, e.message);
     }
   };
 
   for (let l of dataLinodes) {
     await runHandler(l);
+  }
+
+  if (ipErrors.length > 0) {
+    console.log('IP Error: ', ipErrors)
   }
 };
 
