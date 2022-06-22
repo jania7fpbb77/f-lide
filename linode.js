@@ -236,7 +236,8 @@ const actionCreateLinode = async (max) => {
 
   await actionCreateLinode(max);
 
-  // await actionCloneLinode(await getLinode('36972640'), max / 2);
+  // const linode = await getLinode('36972640');
+  // await actionCloneLinode(linode, max / 2);
   // console.log(`Wait 30s for ssh ready`);
   // await new Promise((resolve) => {
   //   setTimeout(resolve, 30000);
