@@ -151,7 +151,7 @@ const createLinodeHandler = async (ignoreRegion) => {
     await new Promise((resolve) => {
       setTimeout(resolve, wait + _.random(3000, 5000));
     });
-    await createLinodeHandler(ignoreRegion);
+    return await createLinodeHandler(ignoreRegion);
   }
 };
 
