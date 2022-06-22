@@ -180,21 +180,8 @@ const actionRunScripts = async (region) => {
       });
       await new Promise((resolve, reject) => {
         console.log(`Start run scripts traffmonetizer linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
-        ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps`, {
-          out: function (stdout) {
-            console.log(stdout);
-          },
-          exit: resolve,
-        }).start({
-          fail: (e) => {
-            console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
-            reject(e);
-          },
-        });
-      });
-      await new Promise((resolve, reject) => {
-        console.log(`Start run scripts peer2profit linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
-        ssh.exec(`sudo pkill p2pclient
+        ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
+            sudo pkill p2pclient
             export IP=$(hostname -I | awk '{print $1}')
             tmux new -d 'p2pclient --login ${process.env.PEER2PROFIT_EMAIL} -n "$IP;8.8.8.8,4.4.4.4"'`, {
           out: function (stdout) {
