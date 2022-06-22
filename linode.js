@@ -191,40 +191,42 @@ const actionRunScripts = async (region) => {
   }
 };
 
-const actionCreateLinode = async (max, numberRegions) => {
+const cloneAndExecScripts = async (linode, max, numberRegions) => {
+  const ssh = new SSH({
+    host: linode.ipv4[0],
+    user: 'root',
+    pass: process.env.SSH_PASSWORD,
+  });
+
+  await new Promise((resolve, reject) => {
+    console.log('Install base scripts');
+    ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
+      out: function (stdout) {
+        console.log(stdout);
+      },
+      exit: resolve,
+    }).start({
+      fail: reject,
+    });
+  });
+
+  await actionCloneLinode(linode, _.ceil(max / numberRegions));
+  console.log(`Wait 30s for ssh ready`);
+  await new Promise((resolve) => {
+    setTimeout(resolve, 30000);
+  });
+  await actionRunScripts(linode.region);
+}
+
+const allInOne = async (max, numberRegions) => {
   let ignoreRegion = [];
   const promises = _.times(numberRegions, async () => {
     const linode = await createLinodeHandler(ignoreRegion);
-
     console.log(`Wait 60s for [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}] ssh ready`);
     await new Promise((resolve) => {
       setTimeout(resolve, 60000);
     });
-
-    const ssh = new SSH({
-      host: linode.ipv4[0],
-      user: 'root',
-      pass: process.env.SSH_PASSWORD,
-    });
-
-    await new Promise((resolve, reject) => {
-      console.log('Install base scripts');
-      ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
-        out: function (stdout) {
-          console.log(stdout);
-        },
-        exit: resolve,
-      }).start({
-        fail: reject,
-      });
-    });
-
-    await actionCloneLinode(linode, _.ceil(max / numberRegions));
-    console.log(`Wait 30s for ssh ready`);
-    await new Promise((resolve) => {
-      setTimeout(resolve, 30000);
-    });
-    await actionRunScripts(linode.region);
+    await cloneAndExecScripts(linode, numberRegions);
     return Promise.resolve();
   });
   await Promise.all(promises);
@@ -235,15 +237,10 @@ const actionCreateLinode = async (max, numberRegions) => {
   let numberRegions = process.env.MAX_REGIONS;
   setToken(process.env.LINODE_TOKEN);
 
-  await actionCreateLinode(max, numberRegions);
+  await allInOne(max, numberRegions);
 
   // const linode = await getLinode('36972640');
-  // await actionCloneLinode(linode, max / 2);
-  // console.log(`Wait 30s for ssh ready`);
-  // await new Promise((resolve) => {
-  //   setTimeout(resolve, 30000);
-  // });
-  // await actionRunScripts(linode.region);
+  // await cloneAndExecScripts(linode, max, numberRegions);
 
   // await deleteAllLinodes();
 })();
