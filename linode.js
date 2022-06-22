@@ -246,7 +246,7 @@ const allInOne = async (max, numberRegions) => {
     await new Promise((resolve) => {
       setTimeout(resolve, 60000);
     });
-    await cloneAndExecScripts(linode, numberRegions);
+    await cloneAndExecScripts(linode, max, numberRegions);
     return Promise.resolve();
   });
   await Promise.all(promises);
