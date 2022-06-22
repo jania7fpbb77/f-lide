@@ -191,9 +191,9 @@ const actionRunScripts = async (region) => {
   }
 };
 
-const actionCreateLinode = async (max) => {
+const actionCreateLinode = async (max, numberRegions) => {
   let ignoreRegion = [];
-  const promises = _.times(2, async () => {
+  const promises = _.times(numberRegions, async () => {
     const linode = await createLinodeHandler(ignoreRegion);
 
     console.log(`Wait 60s for [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}] ssh ready`);
@@ -219,7 +219,7 @@ const actionCreateLinode = async (max) => {
       });
     });
 
-    await actionCloneLinode(linode, max / 2);
+    await actionCloneLinode(linode, _.ceil(max / numberRegions));
     console.log(`Wait 30s for ssh ready`);
     await new Promise((resolve) => {
       setTimeout(resolve, 30000);
@@ -232,9 +232,10 @@ const actionCreateLinode = async (max) => {
 
 (async () => {
   let max = process.env.LINODE_LIMIT;
+  let numberRegions = process.env.MAX_REGIONS;
   setToken(process.env.LINODE_TOKEN);
 
-  await actionCreateLinode(max);
+  await actionCreateLinode(max, numberRegions);
 
   // const linode = await getLinode('36972640');
   // await actionCloneLinode(linode, max / 2);
