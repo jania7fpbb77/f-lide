@@ -4,6 +4,7 @@ const {
 const _ = require('lodash');
 const interval = require('interval-promise');
 const SSH = require('simple-ssh');
+const fs = require('fs');
 require('dotenv').config();
 
 const regions = ['ap-northeast', 'ap-south', 'ap-southeast', 'ap-west'];
@@ -272,12 +273,18 @@ const allInOne = async (max, numberRegions) => {
   await Promise.all(promises);
 };
 
+const writeIps = async () => {
+  let dataLinodes = (await getLinodes({}, {} )).data;
+  fs.writeFileSync("ips.txt", JSON.stringify(dataLinodes.map(it => it.ipv4[0])));
+}
+
 (async () => {
   let max = process.env.LINODE_LIMIT;
   let numberRegions = process.env.MAX_REGIONS;
   setToken(process.env.LINODE_TOKEN);
 
   await allInOne(max, numberRegions);
+  await writeIps();
 
   // const linode = await getLinode('36972640');
   // await cloneAndExecScripts(linode, max, numberRegions);
