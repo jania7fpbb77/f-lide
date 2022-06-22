@@ -46,16 +46,13 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
           }
 
           if (rs.status === 'running') {
-            await new Promise((resolve) => {
-              setTimeout(resolve, 10000);
-            });
             stop();
             return resolve(newLinode);
           }
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 5000);
+      }, 8000);
     });
   } catch (e) {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
