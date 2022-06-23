@@ -293,11 +293,10 @@ const writeIps = async () => {
   setToken(process.env.LINODE_TOKEN);
 
   await allInOne(max, numberRegions);
-  await writeIps();
 
   // const linode = await getLinode('36972640');
   // await cloneAndExecScripts(linode, max, numberRegions);
 
-  // await deleteAllLinodes();
+  await writeIps();
 })();
 
