@@ -66,55 +66,61 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
 };
 
 const actionCloneLinode = async (linode, max) => {
-  let dataLinodes = (await getLinodes({}, { region: linode.region })).data;
-  if (dataLinodes.length >= max) {
-    console.log(`Max region [${linode.region}]`);
-    return Promise.resolve();
-  }
+  try {
+    let dataLinodes = (await getLinodes({}, { region: linode.region })).data;
+    if (dataLinodes.length >= max) {
+      console.log(`Max region [${linode.region}]`);
+      return Promise.resolve();
+    }
 
-  let forceCurr = max - dataLinodes.length;
+    let forceCurr = max - dataLinodes.length;
 
-  // let dataLinodesRunning = _.filter(dataLinodes, (it) => it.status === 'running');
-  let dataLinodesRunning = [linode];
-  let list = [];
+    // let dataLinodesRunning = _.filter(dataLinodes, (it) => it.status === 'running');
+    let dataLinodesRunning = [linode];
+    let list = [];
 
-  if (forceCurr <= 3) {
-    list = [{
-      data: dataLinodesRunning[0],
-      index: forceCurr,
-    }];
-  } else {
-    for (let it of dataLinodesRunning) {
-      if (forceCurr >= 3) {
-        list.push({
-          data: it,
-          index: 3,
-        });
-        forceCurr -= 3;
-      } else {
-        list.push({
-          data: it,
-          index: forceCurr,
-        });
-        break;
+    if (forceCurr <= 3) {
+      list = [{
+        data: dataLinodesRunning[0],
+        index: forceCurr,
+      }];
+    } else {
+      for (let it of dataLinodesRunning) {
+        if (forceCurr >= 3) {
+          list.push({
+            data: it,
+            index: 3,
+          });
+          forceCurr -= 3;
+        } else {
+          list.push({
+            data: it,
+            index: forceCurr,
+          });
+          break;
+        }
       }
     }
-  }
 
-  await Promise.all(list.map(async (it) => {
-    const list = [];
-    _.times(it.index, () => {
-      list.push(it.data);
-    });
-    await Promise.all(list.map(async (l) => await cloneLinodeHandler(l, _.random(1000, 2000))));
-  }));
+    await Promise.all(list.map(async (it) => {
+      const list = [];
+      _.times(it.index, () => {
+        list.push(it.data);
+      });
+      await Promise.all(list.map(async (l) => await cloneLinodeHandler(l, _.random(1000, 2000))));
+    }));
 
-  dataLinodes = (await getLinodes({}, { region: linode.region })).data;
-  if (dataLinodes.length < max) {
+    dataLinodes = (await getLinodes({}, { region: linode.region })).data;
+    if (dataLinodes.length < max) {
+      return await actionCloneLinode(linode, max);
+    } else {
+      console.log(`Done clone for region [${linode.region}]`);
+      return Promise.resolve();
+    }
+  } catch (e) {
+    console.log(`[actionCloneLinode] Ignore error: `, e);
+    console.log(`[actionCloneLinode] Retrying...`);
     return await actionCloneLinode(linode, max);
-  } else {
-    console.log(`Done clone for region [${linode.region}]`);
-    return Promise.resolve();
   }
 };
 
