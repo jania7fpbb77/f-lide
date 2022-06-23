@@ -173,36 +173,46 @@ const actionRunScripts = async (region) => {
   console.log(`actionRunScripts for ${region} - linodes: ${dataLinodes.length}`);
   const ipErrors = [];
   const runHandler = async (linode) => {
-    try {
-      const ssh = new SSH({
-        host: linode.ipv4[0],
-        user: 'root',
-        pass: process.env.SSH_PASSWORD,
-      });
-      await new Promise((resolve, reject) => {
-        console.log(`Start run scripts traffmonetizer linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
-        ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
+    let countRetry = 0;
+    const run = async (linode) => {
+      try {
+        const ssh = new SSH({
+          host: linode.ipv4[0],
+          user: 'root',
+          pass: process.env.SSH_PASSWORD,
+        });
+        await new Promise((resolve, reject) => {
+          console.log(`Start run scripts traffmonetizer linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
+          ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
             sudo pkill p2pclient
             export IP=$(hostname -I | awk '{print $1}')
             tmux new -d 'p2pclient --login ${process.env.PEER2PROFIT_EMAIL} -n "$IP;8.8.8.8,4.4.4.4"'`, {
-          out: function (stdout) {
-            console.log(stdout);
-          },
-          exit: resolve,
-        }).start({
-          fail: (e) => {
-            console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
-            reject(e);
-          },
+            out: function (stdout) {
+              console.log(stdout);
+            },
+            exit: resolve,
+          }).start({
+            fail: (e) => {
+              console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
+              reject(e);
+            },
+          });
         });
-      });
-    } catch (e) {
-      ipErrors.push({
-        ip: linode.ipv4[0],
-        message: e.message,
-      });
-      console.error(`Retry error ip: $[${linode.ipv4[0]}]: `, e.message);
+      } catch (e) {
+        console.error(`Error ip: $[${linode.ipv4[0]}]: `, e.message);
+        if (countRetry < 5) {
+          console.error(`Retry ip: $[${linode.ipv4[0]}]`);
+          ++countRetry;
+          await run(linode);
+        } else {
+          ipErrors.push({
+            ip: linode.ipv4[0],
+            message: e.message,
+          });
+        }
+      }
     }
+    await run(linode);
   };
 
   for (let l of dataLinodes) {
