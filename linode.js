@@ -198,10 +198,6 @@ const actionRunScripts = async (region) => {
                 console.log(stdout);
               },
               exit: resolve,
-              err: (e) => {
-                console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
-                reject(e);
-              },
             }).start({
               fail: (e) => {
                 console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
@@ -239,42 +235,46 @@ const actionRunScripts = async (region) => {
 };
 
 const cloneAndExecScripts = async (linode, max, numberRegions) => {
+  let countRetry = 0;
   const installBaseScripts = async () => {
-    const ssh = new SSH({
-      host: linode.ipv4[0],
-      user: 'root',
-      pass: process.env.SSH_PASSWORD,
-    });
+    try {
+      const ssh = new SSH({
+        host: linode.ipv4[0],
+        user: 'root',
+        pass: process.env.SSH_PASSWORD,
+      });
 
-    await new Promise((resolve, reject) => {
-      console.log('Install base scripts');
-      try {
-        ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
-          out: function (stdout) {
-            console.log(stdout);
-          },
-          exit: resolve,
-          err: reject,
-        }).start({
-          fail: reject,
+      await new Promise((resolve, reject) => {
+        console.log('Install base scripts');
+        try {
+          ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
+            out: function (stdout) {
+              console.log(stdout);
+            },
+            exit: resolve,
+          }).start({
+            fail: reject,
+          });
+        } catch (e) {
+          reject(e);
+        }
+      });
+    } catch (e) {
+      console.log('[installBaseScripts] Error: ', e);
+      if (countRetry < 5) {
+        console.log('[installBaseScripts] Retrying...');
+        await new Promise((resolve) => {
+          setTimeout(resolve, _.random(3000, 5000));
         });
-      } catch (e) {
-        reject(e);
+        ++countRetry;
+        await installBaseScripts();
+      } else {
+        throw e;
       }
-    });
+    }
   }
 
-  try {
-    await installBaseScripts();
-  } catch (e) {
-    console.log('[installBaseScripts] ignore error: ', e.message);
-    console.log('[installBaseScripts] Retrying...');
-    await new Promise((resolve) => {
-      setTimeout(resolve, _.random(3000, 5000));
-    });
-    await installBaseScripts();
-  }
-
+  await installBaseScripts();
   await actionCloneLinode(linode, _.ceil(max / numberRegions));
   console.log(`Wait 30s for ssh ready`);
   await new Promise((resolve) => {
