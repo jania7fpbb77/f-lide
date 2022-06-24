@@ -311,13 +311,11 @@ const writeIps = async () => {
   let numberRegions = process.env.MAX_REGIONS;
   setToken(process.env.LINODE_TOKEN);
 
-  console.log(await getRegions())
-
-  // await allInOne(max, numberRegions);
+  await allInOne(max, numberRegions);
 
   // const linode = await getLinode('36972640');
   // await cloneAndExecScripts(linode, max, numberRegions);
 
-  // await writeIps();
+  await writeIps();
 })();
 
