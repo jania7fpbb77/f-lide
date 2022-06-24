@@ -1,5 +1,5 @@
 const {
-  setToken, getLinode, getLinodes, createLinode, cloneLinode, linodeBoot, deleteLinode,
+  setToken, getLinode, getLinodes, createLinode, cloneLinode, linodeBoot, deleteLinode, getRegions
 } = require('@linode/api-v4');
 const _ = require('lodash');
 const interval = require('interval-promise');
@@ -189,20 +189,28 @@ const actionRunScripts = async (region) => {
         });
         await new Promise((resolve, reject) => {
           console.log(`Start run scripts traffmonetizer linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
-          ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
+          try {
+            ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
             sudo pkill p2pclient
             export IP=$(hostname -I | awk '{print $1}')
             tmux new -d 'p2pclient --login ${process.env.PEER2PROFIT_EMAIL} -n "$IP;8.8.8.8,4.4.4.4"'`, {
-            out: function (stdout) {
-              console.log(stdout);
-            },
-            exit: resolve,
-          }).start({
-            fail: (e) => {
-              console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
-              reject(e);
-            },
-          });
+              out: function (stdout) {
+                console.log(stdout);
+              },
+              exit: resolve,
+              err: (e) => {
+                console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
+                reject(e);
+              },
+            }).start({
+              fail: (e) => {
+                console.error(`ssh error ip: $[${linode.ipv4[0]}]: `, e);
+                reject(e);
+              },
+            });
+          } catch (e) {
+            reject(e);
+          }
         });
       } catch (e) {
         console.error(`Error ip: $[${linode.ipv4[0]}]: `, e.message);
@@ -240,14 +248,19 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
 
     await new Promise((resolve, reject) => {
       console.log('Install base scripts');
-      ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
-        out: function (stdout) {
-          console.log(stdout);
-        },
-        exit: resolve,
-      }).start({
-        fail: reject,
-      });
+      try {
+        ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
+          out: function (stdout) {
+            console.log(stdout);
+          },
+          exit: resolve,
+          err: reject,
+        }).start({
+          fail: reject,
+        });
+      } catch (e) {
+        reject(e);
+      }
     });
   }
 
@@ -298,11 +311,13 @@ const writeIps = async () => {
   let numberRegions = process.env.MAX_REGIONS;
   setToken(process.env.LINODE_TOKEN);
 
-  await allInOne(max, numberRegions);
+  console.log(await getRegions())
+
+  // await allInOne(max, numberRegions);
 
   // const linode = await getLinode('36972640');
   // await cloneAndExecScripts(linode, max, numberRegions);
 
-  await writeIps();
+  // await writeIps();
 })();
 
