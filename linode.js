@@ -41,7 +41,7 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
         try {
           const rs = await getLinode(newLinode.id);
           console.log(`Checking clone linode [${newLinode.id} - ${newLinode.label} - ${newLinode.region} - ${newLinode.ipv4[0]}] status is ${rs.status}`);
-          if (rs.status === 'offline' && iterationNumber >= 5) {
+          if (rs.status === 'offline' && iterationNumber >= 10) {
             await linodeBoot(newLinode.id);
             console.log(`Boot Linode [${newLinode.id} - ${newLinode.label} - ${newLinode.region} - ${newLinode.ipv4[0]}]`);
           }
@@ -59,7 +59,7 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
     console.log('[cloneLinodeHandler] Retrying...');
     await new Promise((resolve) => {
-      setTimeout(resolve, _.random(3000, 5000));
+      setTimeout(resolve, _.random(5000, 10000));
     });
     await cloneLinodeHandler(linode, wait);
   }
@@ -124,10 +124,13 @@ const actionCloneLinode = async (linode, max) => {
   }
 };
 
-const createLinodeHandler = async (ignoreRegion) => {
+const createLinodeHandler = async (ignoreRegion, region = null) => {
   try {
-    const region = _.sample(getRegionsRandom(ignoreRegion));
-    ignoreRegion.push(region);
+    if (!region) {
+      region = _.sample(getRegionsRandom(ignoreRegion));
+      ignoreRegion.push(region);
+    }
+
     const linode = await createLinode({
       type: 'g6-nanode-1',
       image: 'linode/ubuntu22.04',
@@ -148,15 +151,15 @@ const createLinodeHandler = async (ignoreRegion) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 5000);
+      }, 8000);
     });
   } catch (e) {
     console.log('ignore error: ', e);
     console.log('[createLinodeHandler] Retrying... ');
     await new Promise((resolve) => {
-      setTimeout(resolve, _.random(3000, 5000));
+      setTimeout(resolve, _.random(5000, 10000));
     });
-    return await createLinodeHandler(ignoreRegion);
+    return await createLinodeHandler(ignoreRegion, region);
   }
 };
 
@@ -213,6 +216,9 @@ const actionRunScripts = async (region) => {
         if (countRetry < 5) {
           console.error(`Retry ip: $[${linode.ipv4[0]}]`);
           ++countRetry;
+          await new Promise((resolve) => {
+            setTimeout(resolve, _.random(5000, 10000));
+          });
           await run(linode);
         } else {
           ipErrors.push({
@@ -285,10 +291,12 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
 
 const allInOne = async (max, numberRegions) => {
   let ignoreRegion = [];
+  let time = 1000;
   const promises = _.times(numberRegions, async () => {
     await new Promise((resolve) => {
-      setTimeout(resolve, _.random(1000, 3000));
+      setTimeout(resolve, time + _.random(1000, 5000));
     });
+    time+= 1000;
     const linode = await createLinodeHandler(ignoreRegion);
     console.log(`Wait 60s for [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}] ssh ready`);
     await new Promise((resolve) => {
