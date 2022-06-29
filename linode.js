@@ -310,8 +310,9 @@ const allInOne = async (max, numberRegions) => {
 
 const writeIps = async () => {
   let dataLinodes = (await getLinodes({}, {} )).data;
-  fs.writeFileSync("ips.txt", JSON.stringify(dataLinodes.map(it => it.ipv4[0])));
-  console.log('Please open ips.txt file to get list ips')
+  const ips = dataLinodes.map(it => it.ipv4[0]);
+  fs.writeFileSync("ips.txt", JSON.stringify(ips));
+  console.log(`Please open ips.txt file to get list ${ips.length} ips`)
 }
 
 (async () => {
