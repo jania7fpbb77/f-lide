@@ -53,7 +53,7 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 8000);
+      }, 10000);
     });
   } catch (e) {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
@@ -151,13 +151,13 @@ const createLinodeHandler = async (ignoreRegion, region = null) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 8000);
+      }, 10000);
     });
   } catch (e) {
     console.log('ignore error: ', e);
     console.log('[createLinodeHandler] Retrying... ');
     await new Promise((resolve) => {
-      setTimeout(resolve, _.random(5000, 10000));
+      setTimeout(resolve, _.random(8000, 15000));
     });
     return await createLinodeHandler(ignoreRegion, region);
   }
@@ -270,7 +270,7 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
       if (countRetry < 5) {
         console.log('[installBaseScripts] Retrying...');
         await new Promise((resolve) => {
-          setTimeout(resolve, _.random(3000, 5000));
+          setTimeout(resolve, _.random(5000, 10000));
         });
         ++countRetry;
         await installBaseScripts();
@@ -294,7 +294,7 @@ const allInOne = async (max, numberRegions) => {
   let time = 1000;
   const promises = _.times(numberRegions, async () => {
     await new Promise((resolve) => {
-      setTimeout(resolve, time + _.random(1000, 5000));
+      setTimeout(resolve, time + _.random(3000, 10000));
     });
     time+= 1000;
     const linode = await createLinodeHandler(ignoreRegion);
