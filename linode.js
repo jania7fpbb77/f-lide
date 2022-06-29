@@ -8,9 +8,10 @@ const { faker } = require('@faker-js/faker');
 const fs = require('fs');
 require('dotenv').config();
 
+let regions = [];
+
 const getRegionsRandom = async (ignoreRegion = []) => {
   let list = [];
-  const regions = (await getRegions()).data.map(it => it.id);
   for (let it of regions) {
     if (!ignoreRegion.includes(it)) {
       list.push(it);
@@ -318,7 +319,7 @@ const writeIps = async () => {
   let max = process.env.LINODE_LIMIT;
   let numberRegions = process.env.MAX_REGIONS;
   setToken(process.env.LINODE_TOKEN);
-
+  regions = (await getRegions()).data.map(it => it.id);
   await allInOne(max, numberRegions);
 
   // const linode = await getLinode('36972640');
