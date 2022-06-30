@@ -41,7 +41,7 @@ const cloneLinodeHandler = async (linode, wait = 10000) => {
         try {
           const rs = await getLinode(newLinode.id);
           console.log(`Checking clone linode [${newLinode.id} - ${newLinode.label} - ${newLinode.region} - ${newLinode.ipv4[0]}] status is ${rs.status}`);
-          if (rs.status === 'offline' && iterationNumber >= 5) {
+          if (rs.status === 'offline' && iterationNumber >= 3) {
             await linodeBoot(newLinode.id);
             console.log(`Boot Linode [${newLinode.id} - ${newLinode.label} - ${newLinode.region} - ${newLinode.ipv4[0]}]`);
           }
