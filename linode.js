@@ -25,10 +25,10 @@ const getRegionsRandom = async (ignoreRegion = []) => {
   return _.shuffle(list);
 };
 
-const cloneLinodeHandler = async (linode, wait = 5000) => {
+const cloneLinodeHandler = async (linode, wait = 10000) => {
   try {
     await new Promise((resolve) => {
-      setTimeout(resolve, wait + _.random(5000, 15000));
+      setTimeout(resolve, wait + _.random(10000, 15000));
     });
     const newLinode = await cloneLinode(linode.id, {
       type: linode.type,
@@ -53,7 +53,7 @@ const cloneLinodeHandler = async (linode, wait = 5000) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 15000);
+      }, 20000);
     });
   } catch (e) {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
@@ -107,7 +107,7 @@ const actionCloneLinode = async (linode, max) => {
       _.times(it.index, () => {
         list.push(it.data);
       });
-      await Promise.all(list.map(async (l) => await cloneLinodeHandler(l, _.random(5000, 10000))));
+      await Promise.all(list.map(async (l) => await cloneLinodeHandler(l, _.random(10000, 15000))));
     }));
 
     dataLinodes = (await getLinodes({}, { region: linode.region })).data;
@@ -151,7 +151,7 @@ const createLinodeHandler = async (ignoreRegion, region = null) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 15000);
+      }, 20000);
     });
   } catch (e) {
     console.log('ignore error: ', e);
@@ -296,9 +296,9 @@ const allInOne = async (max, numberRegions) => {
   let time = 1000;
   const promises = _.times(numberRegions, async () => {
     await new Promise((resolve) => {
-      setTimeout(resolve, time + _.random(8000, 20000));
+      setTimeout(resolve, time + _.random(10000, 20000));
     });
-    time+= 1000;
+    time+= 2000;
     const linode = await createLinodeHandler(ignoreRegion);
     console.log(`Wait 60s for [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}] ssh ready`);
     await new Promise((resolve) => {
