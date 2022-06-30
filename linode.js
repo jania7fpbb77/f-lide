@@ -25,10 +25,10 @@ const getRegionsRandom = async (ignoreRegion = []) => {
   return _.shuffle(list);
 };
 
-const cloneLinodeHandler = async (linode, wait = 2000) => {
+const cloneLinodeHandler = async (linode, wait = 5000) => {
   try {
     await new Promise((resolve) => {
-      setTimeout(resolve, wait + _.random(1000, 3000));
+      setTimeout(resolve, wait + _.random(5000, 15000));
     });
     const newLinode = await cloneLinode(linode.id, {
       type: linode.type,
@@ -53,13 +53,13 @@ const cloneLinodeHandler = async (linode, wait = 2000) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 10000);
+      }, 15000);
     });
   } catch (e) {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
     console.log('[cloneLinodeHandler] Retrying...');
     await new Promise((resolve) => {
-      setTimeout(resolve, _.random(5000, 10000));
+      setTimeout(resolve, _.random(10000, 20000));
     });
     await cloneLinodeHandler(linode, wait);
   }
@@ -107,7 +107,7 @@ const actionCloneLinode = async (linode, max) => {
       _.times(it.index, () => {
         list.push(it.data);
       });
-      await Promise.all(list.map(async (l) => await cloneLinodeHandler(l, _.random(1000, 2000))));
+      await Promise.all(list.map(async (l) => await cloneLinodeHandler(l, _.random(5000, 10000))));
     }));
 
     dataLinodes = (await getLinodes({}, { region: linode.region })).data;
@@ -151,13 +151,13 @@ const createLinodeHandler = async (ignoreRegion, region = null) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, 10000);
+      }, 15000);
     });
   } catch (e) {
     console.log('ignore error: ', e);
     console.log('[createLinodeHandler] Retrying... ');
     await new Promise((resolve) => {
-      setTimeout(resolve, _.random(8000, 15000));
+      setTimeout(resolve, _.random(10000, 20000));
     });
     return await createLinodeHandler(ignoreRegion, region);
   }
@@ -194,6 +194,8 @@ const actionRunScripts = async (region) => {
           console.log(`Start run scripts traffmonetizer linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
           try {
             ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
+            sudo pkill bitping
+            tmux new -s $RANDOM -d './bitping -email ${process.env.BITPING_EMAIL} -password ${process.env.BITPING_PASSWORD}'
             sudo pkill p2pclient
             export IP=$(hostname -I | awk '{print $1}')
             tmux new -d 'p2pclient --login ${process.env.PEER2PROFIT_EMAIL} -n "$IP;8.8.8.8,4.4.4.4"'`, {
@@ -217,7 +219,7 @@ const actionRunScripts = async (region) => {
           console.error(`Retry ip: $[${linode.ipv4[0]}]`);
           ++countRetry;
           await new Promise((resolve) => {
-            setTimeout(resolve, _.random(5000, 10000));
+            setTimeout(resolve, _.random(10000, 20000));
           });
           await run(linode);
         } else {
@@ -253,7 +255,7 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
       await new Promise((resolve, reject) => {
         console.log('Install base scripts');
         try {
-          ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
+          ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo apt install tmux && wget https://github.com/dump464646/temp/raw/main/bitping && sudo chmod +x bitping && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
             out: function (stdout) {
               console.log(stdout);
             },
@@ -270,7 +272,7 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
       if (countRetry < 5) {
         console.log('[installBaseScripts] Retrying...');
         await new Promise((resolve) => {
-          setTimeout(resolve, _.random(5000, 10000));
+          setTimeout(resolve, _.random(10000, 20000));
         });
         ++countRetry;
         await installBaseScripts();
@@ -294,7 +296,7 @@ const allInOne = async (max, numberRegions) => {
   let time = 1000;
   const promises = _.times(numberRegions, async () => {
     await new Promise((resolve) => {
-      setTimeout(resolve, time + _.random(3000, 10000));
+      setTimeout(resolve, time + _.random(8000, 20000));
     });
     time+= 1000;
     const linode = await createLinodeHandler(ignoreRegion);
