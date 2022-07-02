@@ -193,7 +193,7 @@ const actionRunScripts = async (region) => {
         await new Promise((resolve, reject) => {
           console.log(`Start run scripts traffmonetizer linode [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}]`);
           try {
-            ssh.exec(`for i in $(seq 1 10); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
+            ssh.exec(`for i in $(seq 1 20); do docker run -it -d --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done && docker ps
             sudo pkill bitping
             tmux new -s $RANDOM -d './bitping -email ${process.env.BITPING_EMAIL} -password ${process.env.BITPING_PASSWORD}'
             sudo pkill p2pclient
