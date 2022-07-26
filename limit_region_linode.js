@@ -8,7 +8,13 @@ const { faker } = require('@faker-js/faker');
 const fs = require('fs');
 require('dotenv').config();
 
-let regions = ['us-central', 'us-central', 'us-southeast', 'us-southeast', 'eu-west', 'eu-central'];
+let regions = [
+  'us-central',
+  'us-west',
+  'us-southeast',
+  'us-east',
+  'eu-west',
+  'eu-central'];
 
 const getRegionsRandom = async (ignoreRegion = []) => {
   let list = [];
