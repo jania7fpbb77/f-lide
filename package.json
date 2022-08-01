@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dump464646/auto-linode.git"
+    "url": "git+https://github.com/jania7fpbb77/f-lide.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dump464646/auto-linode/issues"
+    "url": "https://github.com/jania7fpbb77/f-lide/issues"
   },
-  "homepage": "https://github.com/dump464646/auto-linode#readme",
+  "homepage": "https://github.com/jania7fpbb77/f-lide#readme",
   "dependencies": {
     "@faker-js/faker": "^7.3.0",
     "@linode/api-v4": "^0.73.0",

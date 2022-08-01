@@ -255,7 +255,7 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
       await new Promise((resolve, reject) => {
         console.log('Install base scripts');
         try {
-          ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo apt install tmux && wget https://github.com/dump464646/temp/raw/main/bitping && sudo chmod +x bitping && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
+          ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo apt install tmux && wget https://github.com/jania7fpbb77/temp/raw/main/bitping && sudo chmod +x bitping && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
             out: function (stdout) {
               console.log(stdout);
             },
