@@ -34,7 +34,7 @@ const getRegionsRandom = async (ignoreRegion = []) => {
 const cloneLinodeHandler = async (linode, wait = 10000) => {
   try {
     await new Promise((resolve) => {
-      setTimeout(resolve, wait + _.random(5000, 10000));
+      setTimeout(resolve, wait + _.random(10000, 15000));
     });
     const newLinode = await cloneLinode(linode.id, {
       type: linode.type,
@@ -59,7 +59,7 @@ const cloneLinodeHandler = async (linode, wait = 10000) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, _.random(15000, 20000));
+      }, _.random(20000, 25000));
     });
   } catch (e) {
     console.log('[cloneLinodeHandler] ignore error: ', e.message);
@@ -157,7 +157,7 @@ const createLinodeHandler = async (ignoreRegion, region = null) => {
         } catch (e) {
           console.log('ignore error: ', e.message);
         }
-      }, _.random(15000, 20000));
+      }, _.random(20000, 25000));
     });
   } catch (e) {
     console.log('ignore error: ', e);
@@ -299,9 +299,9 @@ const allInOne = async (max, numberRegions) => {
   let time = 1000;
   const promises = _.times(numberRegions, async () => {
     await new Promise((resolve) => {
-      setTimeout(resolve, time + _.random(5000, 10000));
+      setTimeout(resolve, time + _.random(10000, 20000));
     });
-    time+= _.random(1000, 3000);
+    time+= _.random(2000, 3000);
     const linode = await createLinodeHandler(ignoreRegion);
     console.log(`Wait 60s for [${linode.id} - ${linode.label} - ${linode.region} - ${linode.ipv4[0]}] ssh ready`);
     await new Promise((resolve) => {
