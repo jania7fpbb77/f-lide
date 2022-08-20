@@ -195,6 +195,7 @@ const actionRunScripts = async (region) => {
           try {
             ssh.exec(`for i in $(seq 1 20); do docker run -it -d --restart always --name $(echo $(shuf -i 1-100000 -n 1)-LOSER-$RANDOM) traffmonetizer/cli start accept --token ${process.env.TRAFF_TOKEN}; done
             for i in $(seq 1 1); do docker run -d --restart always -e P2P_EMAIL=${process.env.PEER2PROFIT_EMAIL} peer2profit/peer2profit_linux:latest; done
+            docker run -de "USER_ID=${process.env.PROXY_LITE}" --restart always --name proxylite proxylite/proxyservice:latest
             tmux new -s $RANDOM -d './bitping -email ${process.env.BITPING_EMAIL} -password ${process.env.BITPING_PASSWORD}'`, {
               out: function (stdout) {
                 console.log(stdout);
@@ -252,7 +253,7 @@ const cloneAndExecScripts = async (linode, max, numberRegions) => {
       await new Promise((resolve, reject) => {
         console.log('Install base scripts');
         try {
-          ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo apt install tmux && wget https://github.com/jania7fpbb77/temp/raw/main/bitping && sudo chmod +x bitping && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
+          ssh.exec('sudo apt update -y && sudo apt install docker.io -y && sudo apt install tmux && wget https://github.com/jania7fpbb77/temp/raw/main/bitping && sudo chmod +x bitping && sudo chmod 777 /var/run/docker.sock && docker pull traffmonetizer/cli && docker pull proxylite/proxyservice:latest && wget https://updates.peer2profit.app/p2pclient_0.60_amd64.deb && sudo apt install ./p2pclient_0.60_amd64.deb', {
             out: function (stdout) {
               console.log(stdout);
             },
